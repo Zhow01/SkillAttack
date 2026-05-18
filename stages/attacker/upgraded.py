@@ -336,7 +336,4 @@ class UpgradedAttacker(AttackerBase):
                 f"surface={surface.id} round={session.round_id}: {reject_reason}"
             )
 
-        raise AttackerLLMError(
-            f"all {max_attempts} LLM attempts exhausted for {skillname} "
-            f"surface={surface.id} round={session.round_id}"
-        )
+        return self._fallback_attack(skillname=skillname, surface=surface, session=session, feedback=feedback)

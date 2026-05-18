@@ -4,9 +4,9 @@
 profiles:
   analyzer_model:
     provider: openai_compatible
-    model: gpt-4o-mini
-    api_key_env: OPENAI_API_KEY
-    base_url_env: OPENAI_BASE_URL
+    model: qwen3.5-plus
+    api_key_env: QWEN_API_KEY
+    base_url_env: QWEN_BASE_URL
     timeout_seconds: 300
     max_retries: 5
     thinking: false
@@ -14,9 +14,9 @@ profiles:
     max_tokens: 8000
   attacker_model:
     provider: openai_compatible
-    model: gpt-4o
-    api_key_env: OPENAI_API_KEY
-    base_url_env: OPENAI_BASE_URL
+    model: qwen3.5-plus
+    api_key_env: QWEN_API_KEY
+    base_url_env: QWEN_BASE_URL
     timeout_seconds: 300
     max_retries: 5
     thinking: false
@@ -24,10 +24,10 @@ profiles:
     max_tokens: 4000
   simulator_model:
     provider: openai_compatible
-    model: gpt-4o-mini
-    api_key_env: OPENAI_API_KEY
-    base_url_env: OPENAI_BASE_URL
-    openclaw_provider_name: openai
+    model: qwen3.5-flash
+    api_key_env: QWEN_API_KEY
+    base_url_env: QWEN_BASE_URL
+    openclaw_provider_name: dashscope
     timeout_seconds: 300
     max_retries: 5
     thinking: false
@@ -35,9 +35,9 @@ profiles:
     max_tokens: 4000
   judge_model:
     provider: openai_compatible
-    model: gpt-4o-mini
-    api_key_env: OPENAI_API_KEY
-    base_url_env: OPENAI_BASE_URL
+    model: qwen3.5-plus
+    api_key_env: QWEN_API_KEY
+    base_url_env: QWEN_BASE_URL
     timeout_seconds: 300
     max_retries: 5
     thinking: false
@@ -45,9 +45,9 @@ profiles:
     max_tokens: 8000
   feedback_model:
     provider: openai_compatible
-    model: gpt-4o
-    api_key_env: OPENAI_API_KEY
-    base_url_env: OPENAI_BASE_URL
+    model: qwen3.5-plus
+    api_key_env: QWEN_API_KEY
+    base_url_env: QWEN_BASE_URL
     timeout_seconds: 300
     max_retries: 5
     thinking: false

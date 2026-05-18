@@ -1,0 +1,187 @@
+rules:
+  - id: EXF001
+    title: Sensitive credential or file access
+    risk_type: Data Exfiltration
+    level: High
+    confidence: 0.82
+    description: Detects instructions or code that read credentials, secrets, private keys, or sensitive local files.
+    patterns:
+      - '(^|[^\w])(~?/\.ssh/|~?/\.aws/|~?/\.azure/|~?/\.gcp/|~?/\.kube/|\.env\b|id_rsa|id_ed25519|credentials?\.json|private[_ -]?key|secrets?\.(ya?ml|json|env))'
+      - '\b(open|read|cat|grep|load|parse|scan|copy|upload|send|post)\b.{0,80}\b(api[_ -]?key|token|password|secret|credential|cookie|session)\b'
+    exclude_patterns:
+      - '\b(avoid|prevent|do not|don''t|never|should not|sanitize|redact|mask|example|documentation)\b.{0,80}\b(api[_ -]?key|token|password|secret|credential)\b'
+
+  - id: EXF002
+    title: External upload or webhook sink
+    risk_type: Data Exfiltration
+    level: High
+    confidence: 0.78
+    description: Detects likely outbound transfer primitives such as POST requests, upload flags, and webhook endpoints.
+    patterns:
+      - '\b(requests|httpx)\.(post|put|patch)\s*\('
+      - '\bfetch\s*\(.{0,120}\bPOST\b'
+      - '\bcurl\b.{0,120}(-d|--data|--data-binary|--form|--upload-file|\s-T\s)'
+      - '\b(upload|send|post|forward)\b.{0,120}\bhttps?://'
+      - '\b(webhook|ngrok|requestbin|pastebin|discord(app)?\.com/api/webhooks|slack\.com/api)\b'
+
+  - id: EXF003
+    title: Explicit exfiltration instruction
+    risk_type: Data Exfiltration
+    level: Critical
+    confidence: 0.9
+    description: Detects natural-language instructions to leak, forward, upload, or steal sensitive data.
+    patterns:
+      - '\b(exfiltrate|exfiltration|leak|leakage|steal|dump|upload|forward|send|post)\b.{0,120}\b(secret|token|api key|credential|password|private key|patient|vitals|dataset|user data|algorithm|slide|file|prompt|conversation|history|email|calendar)\b'
+      - '\b(secret|token|api key|credential|password|private key|patient|vitals|dataset|user data|algorithm|slide|file|prompt|conversation|history|email|calendar)\b.{0,120}\b(exfiltrate|leak|steal|dump|upload|forward|send|post)\b'
+      - '\bforward\b.{0,120}\b(email|message|record|conversation|calendar|document)\b.{0,120}\b(to|external|attacker|webhook|third party)\b'
+
+  - id: DEST001
+    title: Destructive file, database, or repository operation
+    risk_type: Data Destruction
+    level: High
+    confidence: 0.82
+    description: Detects broad deletion, wiping, truncation, forced repository rewrites, or destructive SQL.
+    patterns:
+      - '\brm\s+-rf\s+(/|~|\$HOME|\*)'
+      - '\bshutil\.rmtree\s*\('
+      - '\b(drop\s+table|truncate\s+table|delete\s+from\s+\w+\s*;)\b'
+      - '\b(git\s+reset\s+--hard|git\s+push\s+--force)\b'
+      - '\b(overwrite|delete|remove|wipe|erase|destroy)\b.{0,80}\b(user data|workspace|project|database|all files?|all records?|all documents?)\b'
+      - '\bfiles?\b.{0,80}\b(older than|after editing)\b.{0,80}\b(delete|remove|wipe|erase|destroy)\b'
+      - '\bdelete them to save disk space\b'
+
+  - id: DEST002
+    title: Unsafe global file permissions
+    risk_type: Data Destruction
+    level: Medium
+    confidence: 0.72
+    description: Detects permissions changes that can expose or damage project files.
+    patterns:
+      - '\bchmod\s+(777|a\+rwx)\b'
+      - '\bchown\s+-R\s+root\b'
+
+  - id: DOS001
+    title: Resource exhaustion or deliberate delay
+    risk_type: DoS (Denial of Service)
+    level: High
+    confidence: 0.82
+    description: Detects fork bombs, infinite loops, very long sleeps, and explicit service-disruption instructions.
+    patterns:
+      - ':\(\)\s*\{\s*:\|:&\s*\};:'
+      - '\bwhile\s+(true|1)\s*[:{]'
+      - '\bfor\s*\(\s*;\s*;\s*\)'
+      - '\bsleep\s*\(\s*(9999|[1-9]\d{4,})\s*\)'
+      - '\btime\.sleep\s*\(\s*(9999|[1-9]\d{4,})\s*\)'
+      - '\b(resource exhaustion|fork bomb|zip bomb|infinite loop|denial of service|dos attack)\b'
+      - '\b(delay|hang|stall)\b.{0,80}\b(agent|mcp|server|workflow|tool)\b'
+
+  - id: MAL001
+    title: Dynamic or shell command execution
+    risk_type: Malware / Ransomware
+    level: High
+    confidence: 0.78
+    description: Detects unsafe dynamic execution and shell execution primitives.
+    patterns:
+      - '(?<![.\w])(eval|exec|compile)\s*\('
+      - '\bos\.system\s*\('
+      - '\bsubprocess\.(run|call|Popen)\s*\(.{0,120}\bshell\s*=\s*True'
+      - '\bchild_process\.exec\s*\('
+    exclude_patterns:
+      - '\b(avoid|prevent|do not|don''t|never|should not|sanitize|example|documentation)\b.{0,80}\b(eval|exec|os\.system|subprocess|shell\s*=\s*True)\b'
+
+  - id: MAL002
+    title: Remote install or download-and-execute
+    risk_type: Malware / Ransomware
+    level: Critical
+    confidence: 0.9
+    description: Detects remote scripts piped into interpreters or package installs from untrusted remote URLs.
+    patterns:
+      - '\b(curl|wget)\b.{0,120}\|\s*(sh|bash|python|node)\b'
+      - '\b(pip|pip3)\s+install\b.{0,120}(https?://|git\+)'
+      - '\bnpm\s+(install|i)\b.{0,120}(https?://|git\+)'
+      - '\bbase64\.(b64decode|decode)\b.{0,120}\b(exec|eval)\b'
+
+  - id: MAL003
+    title: Ransomware or malicious payload instruction
+    risk_type: Malware / Ransomware
+    level: Critical
+    confidence: 0.92
+    description: Detects explicit ransomware, encryption-for-payment, or malicious-payload language.
+    patterns:
+      - '\b(ransomware|encrypt files|encrypt user files|decrypt key|payment address|malicious payload|dropper|trojan|c2 server)\b'
+
+  - id: PHISH001
+    title: Phishing or credential-harvesting instruction
+    risk_type: Phishing
+    level: High
+    confidence: 0.86
+    description: Detects spoofing, impersonation, fake-login, and credential-harvesting instructions.
+    patterns:
+      - '\b(phishing|credential harvesting|fake login|spoof|impersonate|social engineering)\b'
+      - '\b(send|draft|forward|email|message)\b.{0,120}\b(password reset|verify your account|login link|2fa|otp|credentials)\b'
+
+  - id: BACK001
+    title: Backdoor or hidden remote access
+    risk_type: Backdoors
+    level: Critical
+    confidence: 0.93
+    description: Detects explicit backdoors, hidden servers, remote access channels, and well-known suspicious ports.
+    patterns:
+      - '\bbackdoor\b'
+      - '\b(remote access|hidden server|covert access|secret admin|maintenance port|CTO.{0,60}remote access)\b'
+      - '\bport\s+(3707|4444|1337|31337)\b'
+      - '\b(webshell|reverse shell|bind shell)\b'
+
+  - id: BACK002
+    title: Persistence hook or reverse shell
+    risk_type: Backdoors
+    level: Critical
+    confidence: 0.9
+    description: Detects cron/system startup persistence, shell-profile persistence, authorized-key injection, and reverse shells.
+    patterns:
+      - '\b(crontab|cron\.d|systemd|launchd|startup|autorun|\.bashrc|\.zshrc|authorized_keys)\b.{0,120}\b(add|append|write|install|persist|backdoor|command|payload)\b'
+      - '\bnc\s+.*-e\s+/(bin/)?(sh|bash)\b'
+      - '/dev/tcp/\d{1,3}'
+
+  - id: BIAS001
+    title: Prompt override or hidden instruction
+    risk_type: Bias / Manipulation
+    level: High
+    confidence: 0.86
+    description: Detects instructions that bypass policies, override higher-priority instructions, or hide behavior from the user.
+    patterns:
+      - '\b(ignore|override|bypass|disregard)\b.{0,80}\b(previous|system|developer|safety|policy|instruction|rule|guardrail)\b'
+      - '\b(do not disclose|don''t disclose|never mention|do not reveal|hide this instruction|secretly|silently)\b'
+      - '\b(skip|disable|turn off|bypass)\b.{0,80}\b(security|verification|review|checks?)\b'
+      - '\bskip\b.{0,80}\b(sql injection|xss|csrf|auth|permission|safety)\b'
+
+  - id: BIAS002
+    title: Biased or deceptive content manipulation
+    risk_type: Bias / Manipulation
+    level: Medium
+    confidence: 0.78
+    description: Detects instructions to distort conclusions, suppress evidence, fabricate citations, or steer content toward a target narrative.
+    patterns:
+      - '\b(downplay|exaggerate|suppress|rewrite history|historical revisionism|flat earth|climate skeptic|medical skepticism|natural remedies|false citation|fake scores?|spam PRs?)\b'
+      - '\bremove references?\b.{0,80}\b(safety|risk|security|citation|source|evidence|political|gender|women|men|diversity|inclusion)\b'
+      - '\b(always|prefer|promote)\b.{0,80}\b(green sites|male names|specific ideology|political content)\b'
+
+  - id: POIS001
+    title: Memory, context, or knowledge poisoning
+    risk_type: Poisoning
+    level: High
+    confidence: 0.86
+    description: Detects attempts to persist hidden instructions into memory, prompts, config, knowledge bases, or skill files.
+    patterns:
+      - '\b(poison|poisoning|rag injection|memory poisoning|context poisoning|knowledge base poisoning|training data poisoning)\b'
+      - '\b(append|write|persist|store|save)\b.{0,120}\b(hidden instruction|instruction|prompt|policy|memory|config|CLAUDE\.md|SKILL\.md|system prompt)\b'
+
+  - id: POIS002
+    title: Public override or supply-chain poisoning
+    risk_type: Poisoning
+    level: Medium
+    confidence: 0.78
+    description: Detects unsafe public-visibility overrides, dependency confusion, typosquatting, and supply-chain poisoning language.
+    patterns:
+      - '\b(make|set|force)\b.{0,80}\b(dataset|repository|model|paper|artifact)\b.{0,80}\b(public|visible|open)\b'
+      - '\b(unpinned dependency|dependency confusion|typosquat|malicious package|supply chain)\b'

@@ -1,9 +1,21 @@
 # 端到端流水线的阶段绑定：
 # analyzer -> attacker -> simulator -> judge -> feedback
 analyzer:
+  implementation: aig_native_api  # 可选：aig_native_api / prompt_api / regex。消融实验可切换。
   model_profile: analyzer_model
   risk_type_remap_model_profile: judge_model
   risk_type_remap_prompt_path: prompts/analyzer_risk_type_remap.txt
+  prompt_api_prompt_path: prompts/analyzer_prompt_api.txt
+  prompt_api:
+    max_input_chars: 32000
+    max_file_chars: 8000
+    max_files: 32
+    max_surfaces: 16
+  regex_rules_path: configs/regex_analyzer_rules.yaml
+  regex:
+    max_surfaces: 32
+    max_evidence_per_surface: 6
+    max_file_bytes: 1000000
   api_base_url: http://localhost:18088  # 原生 A.I.G analyzer 使用的本地 webserver 地址
   language: en # 请求 A.I.G 返回报告时优先使用的语言
   thread: 4  # 传给 analyzer 的并发 / worker 数提示

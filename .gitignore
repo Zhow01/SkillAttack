@@ -45,3 +45,8 @@ data/3
 
 # Upload archives
 *.zip
+
+
+# else
+/paper
+/research

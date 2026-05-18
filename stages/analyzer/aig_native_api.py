@@ -411,6 +411,7 @@ class AIGNativeAPIAnalyzer(AnalyzerBase):
             return [], []
 
         normalized_labels: List[Optional[str]] = [None] * len(findings)
+        results_payload: List[Any] = []
         classifier_profile = str(self.config.get("risk_type_remap_model_profile") or "").strip()
         if classifier_profile:
             messages = [
