@@ -42,6 +42,7 @@ attacker:
     - exploit
 
 simulator:
+  implementation: opensandbox  # 可选：openclaw / opensandbox。opensandbox 通过 OpenSandbox server 托管 OpenClaw 容器。
   target_agent_model_profile: simulator_model
   container_name: skillrt-openclaw-host
   isolate_per_run: true  # true 表示每次运行都创建一个新的隔离子容器
@@ -55,6 +56,28 @@ simulator:
   # 当前支持占位符：{json_file}、{session_id}、{gateway_port}
   command_template: "openclaw agent --local --session-id {session_id} --verbose on --message \"$(cat {json_file})\" --json"
   timeout: 300  # simulator 总命令超时时间，单位秒。
+  opensandbox:
+    # 使用前先启动本地 OpenSandbox server：
+    #   uvx opensandbox-server init-config ~/.sandbox.toml --example docker
+    #   OPENSANDBOX_INSECURE_SERVER=YES uvx opensandbox-server
+    domain: http://localhost:8080
+    api_key_env: OPEN_SANDBOX_API_KEY
+    image: skillrt-openclaw-clean:latest
+    entrypoint: ["tail", "-f", "/dev/null"]
+    timeout_seconds: 3600
+    ready_timeout_seconds: 60
+    request_timeout_seconds: 30
+    use_server_proxy: false
+    # OpenSandbox Docker runtime 默认适合保留 localhost 模型地址；如果服务端改成 bridge 网络，可设为 docker_bridge。
+    local_base_url_strategy: host
+    container_base_url: ""
+    resource:
+      cpu: "2"
+      memory: "4Gi"
+    network_policy:
+      enabled: false
+      defaultAction: deny
+      egress: []
 
 judge:
   model_profile: judge_model

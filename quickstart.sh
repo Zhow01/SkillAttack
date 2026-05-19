@@ -127,6 +127,11 @@ setup_venv() {
   # shellcheck disable=SC1091
   source "${VENV_DIR}/bin/activate"
 
+  if ! python -m pip --version >/dev/null 2>&1; then
+    log "Bootstrapping pip in virtual environment"
+    python -m ensurepip --upgrade
+  fi
+
   sync_python_dependencies
 }
 

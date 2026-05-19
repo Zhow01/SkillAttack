@@ -13,6 +13,7 @@ dependencies = [
     "openai",
     "docker",
     "requests",
+    "opensandbox; python_version >= '3.10'",
     "pytest",
     "colorlog"
 ]

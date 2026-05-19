@@ -13,6 +13,7 @@ from stages.attacker.upgraded import UpgradedAttacker
 from stages.feedback.basic import BasicFeedback
 from stages.judge.basic import BasicJudge
 from stages.simulator.openclaw import OpenClawSimulator
+from stages.simulator.opensandbox_openclaw import OpenSandboxOpenClawSimulator
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -41,7 +42,18 @@ def init_runtime(attacker_impl_override: Optional[str] = None) -> Tuple[Any, Any
     else:
         raise ValueError(f"Unsupported analyzer implementation: {analyzer_impl}")
     attacker = UpgradedAttacker(dict(stages_cfg.get("attacker", {}) or {}))
-    simulator = OpenClawSimulator(dict(stages_cfg.get("simulator", {}) or {}))
+    simulator_cfg = dict(stages_cfg.get("simulator", {}) or {})
+    simulator_impl = str(
+        simulator_cfg.get("implementation")
+        or simulator_cfg.get("impl")
+        or "openclaw"
+    ).strip()
+    if simulator_impl in {"openclaw", "docker", "docker_openclaw", "openclaw_docker"}:
+        simulator = OpenClawSimulator(simulator_cfg)
+    elif simulator_impl in {"opensandbox", "opensandbox_openclaw", "openclaw_opensandbox"}:
+        simulator = OpenSandboxOpenClawSimulator(simulator_cfg)
+    else:
+        raise ValueError(f"Unsupported simulator implementation: {simulator_impl}")
     judge = BasicJudge(dict(stages_cfg.get("judge", {}) or {}))
     feedback = BasicFeedback(dict(stages_cfg.get("feedback", {}) or {}))
     return analyzer, attacker, simulator, judge, feedback
